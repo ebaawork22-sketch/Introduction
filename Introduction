@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sentence Order Game — Solar Energy in Oman</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; line-height: 1.4; }
+    h1 { font-size: 20px; margin: 0 0 10px; }
+    .note { color: #444; margin-bottom: 16px; }
+    .wrap { display: grid; gap: 16px; grid-template-columns: 1fr; max-width: 900px; }
+    .box { border: 1px solid #ddd; border-radius: 12px; padding: 14px; background: #fafafa; }
+    .box h2 { font-size: 16px; margin: 0 0 10px; }
+    .item {
+      background: #fff; border: 1px solid #ddd; border-radius: 10px;
+      padding: 10px 12px; margin: 10px 0; cursor: grab;
+      box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    }
+    .item.dragging { opacity: .5; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    button {
+      border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer;
+      background: #2d6cdf; color: white; font-weight: 600;
+    }
+    button.secondary { background: #555; }
+    .result { margin-top: 12px; font-weight: 700; }
+    .ok { color: #0a7a2f; }
+    .bad { color: #b00020; }
+    .answer { margin-top: 10px; color: #333; display:none; }
+    .answer code { background:#eee; padding:2px 6px; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <h1>Sentence Order Game — Solar Energy in Oman</h1>
+  <div class="note">Drag the sentences to put the paragraph in the correct order, then click <b>Check</b>.</div>
+
+  <div class="wrap">
+    <div class="box">
+      <h2>Drag to order</h2>
+      <div id="list"></div>
+
+      <div class="controls">
+        <button onclick="checkOrder()">Check</button>
+        <button class="secondary" onclick="shuffleItems()">Shuffle</button>
+        <button class="secondary" onclick="toggleAnswer()">Show/Hide Answer</button>
+      </div>
+
+      <div id="result" class="result"></div>
+      <div id="answer" class="answer"></div>
+    </div>
+  </div>
+
+<script>
+  // ✅ Correct order (IDs): 1,2,3,4,5
+  const correct = ["s1","s2","s3","s4","s5"];
+
+  const sentences = [
+    { id:"s1", text:"Solar energy has become one of the most important renewable energy sources in many countries." },
+    { id:"s2", text:"It is produced by converting sunlight into electricity, and it is now widely used because it is clean and sustainable." },
+    { id:"s3", text:"In recent years, Oman has shown growing interest in solar energy due to its strong sunlight and high energy demand." },
+    { id:"s4", text:"However, like any energy source, solar power has both benefits and limitations." },
+    { id:"s5", text:"This essay will discuss the main advantages and disadvantages of using solar energy in Oman and evaluate whether it is a suitable choice for the country." }
+  ];
+
+  const list = document.getElementById("list");
+  const result = document.getElementById("result");
+  const answer = document.getElementById("answer");
+
+  function render(items){
+    list.innerHTML = "";
+    items.forEach(s => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.draggable = true;
+      div.dataset.id = s.id;
+      div.textContent = s.text;
+
+      div.addEventListener("dragstart", () => div.classList.add("dragging"));
+      div.addEventListener("dragend", () => div.classList.remove("dragging"));
+
+      list.appendChild(div);
+    });
+  }
+
+  list.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    const dragging = document.querySelector(".dragging");
+    const afterElement = getDragAfterElement(list, e.clientY);
+    if (!afterElement) list.appendChild(dragging);
+    else list.insertBefore(dragging, afterElement);
+  });
+
+  function getDragAfterElement(container, y){
+    const els = [...container.querySelectorAll(".item:not(.dragging)")];
+    return els.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) return { offset, element: child };
+      return closest;
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+
+  function getCurrentOrder(){
+    return [...document.querySelectorAll(".item")].map(x => x.dataset.id);
+  }
+
+  function checkOrder(){
+    const current = getCurrentOrder();
+    if (JSON.stringify(current) === JSON.stringify(correct)) {
+      result.className = "result ok";
+      result.textContent = "✅ Correct! Great job.";
+    } else {
+      result.className = "result bad";
+      result.textContent = "❌ Not quite. Try again!";
+    }
+  }
+
+  function shuffleItems(){
+    result.textContent = "";
+    const shuffled = [...sentences].sort(() => Math.random() - 0.5);
+    render(shuffled);
+  }
+
+  function toggleAnswer(){
+    answer.style.display = (answer.style.display === "none" || answer.style.display === "") ? "block" : "none";
+  }
+
+  // Show the correct order (optional teacher support)
+  answer.innerHTML = "<b>Correct order:</b> <code>1 → 2 → 3 → 4 → 5</code>";
+
+  // Start shuffled
+  shuffleItems();
+</script>
+</body>
+</html>
